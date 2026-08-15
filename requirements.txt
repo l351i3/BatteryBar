@@ -1,0 +1,11 @@
+rumps==0.4.0
+hidapi==0.15.0
+# 锁定 9.2 版本以满足 bleak 的强制性要求 (< 10.0)
+pyobjc-core==9.2
+pyobjc-framework-Cocoa==9.2
+pyobjc-framework-CoreBluetooth==9.2
+# 蓝牙与派发依赖
+bleak==0.21.1
+multipledispatch==1.0.0
+# 打包工具
+pyinstaller==6.14.2
