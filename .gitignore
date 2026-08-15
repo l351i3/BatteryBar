@@ -1,12 +1,11 @@
 # Python
 __pycache__/
 *.pyc
-*.pyo
 .venv*/
 .pytest_cache/
 *.egg-info/
 
-# Build artifacts（可由构建脚本重新生成）
+# Build artifacts（由构建脚本生成）
 build/
 dist/
 Widget/BatteryBarNative/build-release/
@@ -14,28 +13,9 @@ Widget/BatteryBarNative/build-release/
 # macOS
 .DS_Store
 
-# 本地审计/调试产物（不对外发布）
+# 本地开发产物（不提交）
 .baseline/
 AUDIT_REPORT.md
 debug_name_reading.py
 /Info.plist
 /MX Master 3
-
-# AI 对话记录（含个人信息）
-tabbit_*.md
-
-# 备份/临时文件
-*.bak
-*.bak_*
-*.backup-*
-*-working-*
-*-pre-reload-*
-*-before-*
-HANDOVER.md
-.build-config-backup-*
-fix_*.py
-fix_*.sh
-*.spec.legacy
-audio-system-report.json
-bluetooth-system-report.json
-hid-power-report.txt
