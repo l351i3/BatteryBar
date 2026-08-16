@@ -1,5 +1,7 @@
 # Battery Bar
 
+[English](README_EN.md) | [简体中文](README.md)
+
 macOS 菜单栏外设电量监控工具。一只眼睛盯住你所有无线设备的电量：AirPods、Magic Keyboard / Mouse / Trackpad、罗技键鼠（Unifying / Bolt 接收器）、以及任意标准 BLE 设备。
 
 ![macOS](https://img.shields.io/badge/macOS-14%2B%20(Sonoma)-arm64) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
