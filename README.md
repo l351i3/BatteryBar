@@ -4,7 +4,7 @@
 
 macOS 菜单栏外设电量监控工具。一只眼睛盯住你所有无线设备的电量：AirPods、Magic Keyboard / Mouse / Trackpad、罗技键鼠（Unifying / Bolt 接收器）、以及任意标准 BLE 设备。
 
-![macOS](https://img.shields.io/badge/macOS-14%2B%20(Sonoma)-arm64) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
+![macOS](https://img.shields.io/badge/macOS-14%2B%20(Sonoma)-arm64) ![Arch](https://img.shields.io/badge/arch-Apple%20Silicon%20only-red) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 功能特性
 
@@ -49,6 +49,8 @@ Full 安装包含 Swift WidgetKit 桌面小组件，通过快照同步机制与�
 - **BatteryBar-Full.dmg** — 主应用 + 桌面小组件
 - **BatteryBar-AppOnly.dmg** — 仅主应用
 
+> ⚠️ **硬件要求：Apple Silicon（M1/M2/M3/M4）**。安装包仅包含 arm64 架构，Intel Mac 无法运行。
+>
 > 应用为 ad-hoc 签名，首次打开需**右键 → 打开**绕过 Gatekeeper。
 
 ### 方式二：源码运行
@@ -98,6 +100,7 @@ BatteryBar/
 
 ## 已知限制
 
+- **仅 Apple Silicon**：本项目在 M4 (Apple Silicon) 上开发测试，发布包只含 arm64 架构。Intel Mac 无法运行安装包；源码运行理论上可行（依赖均支持 Intel）但完全未测试
 - **Magic Keyboard / Mouse 插线充电**：设备切换为 USB HID 模式，蓝牙通道停止上报数据，属硬件/协议限制，充电状态此时不可见
 - **HID++ 设备深度休眠**：首次刷新可能读到占位名（如 `HID++ Device Slot 2`），下一次刷新会自动恢复真实名称
 - **无 Developer ID 签名**：正式分发需自购证书

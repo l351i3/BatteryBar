@@ -4,7 +4,7 @@
 
 A macOS menu bar app that keeps an eye on the battery of every wireless device you own: AirPods, Magic Keyboard / Mouse / Trackpad, Logitech keyboards and mice (Unifying / Bolt receivers), and any standard BLE device.
 
-![macOS](https://img.shields.io/badge/macOS-14%2B%20(Sonoma)-arm64) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
+![macOS](https://img.shields.io/badge/macOS-14%2B%20(Sonoma)-arm64) ![Arch](https://img.shields.io/badge/arch-Apple%20Silicon%20only-red) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
 
 > **Note:** the app UI is currently Chinese-only. See [Known Limitations](#known-limitations).
 
@@ -51,6 +51,8 @@ Grab it from [Releases](https://github.com/l351i3/BatteryBar/releases):
 - **BatteryBar-Full.dmg** — main app + desktop widget
 - **BatteryBar-AppOnly.dmg** — main app only
 
+> ⚠️ **Hardware requirement: Apple Silicon (M1/M2/M3/M4)**. The packages are arm64-only and will not run on Intel Macs.
+>
 > The app is ad-hoc signed; on first launch, **right-click → Open** to bypass Gatekeeper.
 
 ### Option 2: Run from source
@@ -100,6 +102,7 @@ BatteryBar/
 
 ## Known Limitations
 
+- **Apple Silicon only**: developed and tested on an M4 Mac; release packages are arm64-only. Intel Macs cannot run the packages; running from source may theoretically work (all dependencies support Intel) but is entirely untested
 - **UI language**: Chinese only for now; localization is not yet available
 - **Magic Keyboard / Mouse charging over cable**: the device switches to USB HID mode and stops reporting over Bluetooth — a hardware/protocol limitation; charging state is invisible during this
 - **HID++ deep sleep**: the first refresh after a device wakes may show a placeholder name (e.g. `HID++ Device Slot 2`); the real name returns on the next refresh
