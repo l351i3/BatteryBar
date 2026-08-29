@@ -16,8 +16,8 @@ killall -9 BatteryBarWidgetExtension 2>/dev/null || true
 
 printf '==> Removing Login Items...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
-osascript -e "tell application "System Events" to delete login item "${NATIVE_APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "BatteryBarNative"' 2>/dev/null || true
 
 printf '==> Unregistering Plugin...
 '

@@ -177,11 +177,11 @@ fi
 
 printf '==> Configuring Autostart Login Items (idempotent configuration)...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
-osascript -e "tell application "System Events" to delete login item "${NATIVE_APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "BatteryBarNative"' 2>/dev/null || true
 sleep 0.5
-osascript -e "tell application "System Events" to make login item at end with properties {path:"${APP_PATH}", hidden:true}"
-osascript -e "tell application "System Events" to make login item at end with properties {path:"${NATIVE_PATH}", hidden:true}"
+osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Battery Bar.app", hidden:true}'
+osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/BatteryBarNative.app", hidden:true}'
 
 # Record installed files in a private manifest file for precise cleanups
 cat > "$MANIFEST_LOG" <<EOF
@@ -225,8 +225,8 @@ killall -9 BatteryBarWidgetExtension 2>/dev/null || true
 
 printf '==> Removing autostart items...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
-osascript -e "tell application "System Events" to delete login item "${NATIVE_APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "BatteryBarNative"' 2>/dev/null || true
 
 printf '==> Deregistering widget plugin...
 '
@@ -293,9 +293,9 @@ xattr -cr "$APP_PATH" 2>/dev/null || true
 
 printf '==> Setting up Autostart Login Item...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
 sleep 0.5
-osascript -e "tell application "System Events" to make login item at end with properties {path:"${APP_PATH}", hidden:true}"
+osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Battery Bar.app", hidden:true}'
 
 # Record installed file in local manifest
 cat > "$MANIFEST_LOG" <<EOF
@@ -329,7 +329,7 @@ pkill -x "${APP_NAME}" 2>/dev/null || true
 
 printf '==> Removing autostart login items...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
 
 printf '==> Removing application bundles...
 '
@@ -379,11 +379,11 @@ cat > "$FULL/README.md" <<'DOC'
 # Battery Bar - Full Package (App + Desktop Widget)
 
 ## Introduction
-Complete macOS battery status tool containing both the lightweight Menu Bar status application and native Apple Silicon/Intel Desktop widgets.
+Complete macOS battery status tool containing both the lightweight Menu Bar status application and native Apple Silicon desktop widgets.
 
 ## Requirements
 - macOS 14.0 (Sonoma) or newer.
-- Universal support (Intel + Apple Silicon).
+- Apple Silicon (arm64) only. Not compatible with Intel Macs.
 
 ## Installing
 1. Open Terminal, navigate to the folder where this DMG is mounted or extracted.

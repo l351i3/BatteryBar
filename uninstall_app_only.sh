@@ -10,7 +10,7 @@ pkill -x "$APP_NAME" 2>/dev/null || true
 
 printf '==> Removing Login Item...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
 
 printf '==> Removing Application...
 '

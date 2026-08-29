@@ -711,6 +711,7 @@ build_release_final.sh   # 主入口（用户执行这个）
 1. **DMG 里没有 app**：曾因 staging 目录在 `rm -rf dist` 之前创建，被一并删掉。修复：staging 在 build 之后创建。
 2. **PyInstaller 遗漏依赖**：`hidden_imports` 必须显式列出 AppKit/CoreBluetooth/Foundation/PyObjCTools/objc/rumps。
 3. **Widget 不刷新**：扩展必须签名带 `app-sandbox`，否则 pluginkit 不加载。
+4. **安装脚本登录项从未生效（v2.1.2 后段修复）**：osascript 命令用双引号嵌套（`osascript -e "tell application "System Events" ..."`），AppleScript 解析直接报语法错误，登录项静默失败（`|| true` 吞掉了）。教训：**osascript -e 参数永远用单引号包裹**，路径无变量时直接硬编码。同时 zsh 脚本里不能用 bash 专属的 `BASH_SOURCE`（用 `$0`）。这些脚本由 `build_release_final.sh` 用 heredoc 内嵌生成——**修脚本必须改构建脚本本身**，改外层的 `.sh` 文件对 DMG 无效。
 
 ### 运行构建
 

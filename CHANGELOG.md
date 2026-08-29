@@ -8,6 +8,12 @@ All notable changes to Battery Bar will be documented in this file.
 
 ### Fixed
 
+- **安装/卸载脚本双 bug（随包分发脚本全部修复）**
+  - osascript 引号嵌套错误：`osascript -e "tell application "System Events" ..."` 双引号嵌套导致 AppleScript 语法错误，**登录项（开机自启）从未成功写入**。全部改为单引号包裹。
+  - zsh 脚本使用 bash 专属 `BASH_SOURCE` 变量：`install_app_only.sh` / `install_full.sh` 由 zsh 执行时变量未定义，`SCRIPT_DIR` 解析失败导致安装路径错误。改用通用 `$0`。
+  - 受影响：`build_release_final.sh` 内嵌生成的 4 个分发脚本（install_full / uninstall_full / install_app_only / uninstall_app_only）+ 项目根目录同名脚本 + `build_info.sh` 首行转义损坏。
+  - Full 包 README 中错误的 "Universal support (Intel + Apple Silicon)" 声明修正为 Apple Silicon (arm64) only。
+
 - **AirPods 充电状态终于可靠显示（匿名 pmset 条目匹配）**
   - 根因：`accessory_power_to_devices` 遇到 `record.name` 为空的 pmset 条目直接 `continue`，丢弃了 AirPods 充电盒中唯一可靠的充电数据源（`- (id=350361794) 100%; charging`）。
   - 修复：`_anonymous_accessory_devices()` 新函数，将匿名条目通过电量百分比与蓝牙清单（`battery_left`/`battery_right`/`battery_case`）精确匹配，绑定到对应组件 ID（`base_id:left` 等）。匹配约束：精确电量相等、唯一设备归属、`claimed` 集合防重复。charging/charged 记录排序优先于 discharging。

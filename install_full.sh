@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_NAME="Battery Bar"
 NATIVE_APP_NAME="BatteryBarNative"
 APP_PATH="/Applications/${APP_NAME}.app"
@@ -34,11 +34,11 @@ fi
 
 printf '==> Setting up Login Items...
 '
-osascript -e "tell application "System Events" to delete login item "${APP_NAME}"" 2>/dev/null || true
-osascript -e "tell application "System Events" to delete login item "${NATIVE_APP_NAME}"" 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "Battery Bar"' 2>/dev/null || true
+osascript -e 'tell application "System Events" to delete login item "BatteryBarNative"' 2>/dev/null || true
 sleep 1
-osascript -e "tell application "System Events" to make login item at end with properties {path:"${APP_PATH}", hidden:true}"
-osascript -e "tell application "System Events" to make login item at end with properties {path:"${NATIVE_PATH}", hidden:true}"
+osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Battery Bar.app", hidden:true}'
+osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/BatteryBarNative.app", hidden:true}'
 
 printf '==> Launching applications...
 '
