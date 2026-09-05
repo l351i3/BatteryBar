@@ -58,7 +58,7 @@
 ### 对用户
 
 - 🔋 菜单栏常驻图标（4 态：正常/低电量红/满电金/充电绿），点击展开分类设备列表（键盘/鼠标/麦克风/耳机/音箱/触控板/触控笔/手柄/其他）。
-- 每台设备显示：名称、电量百分比、电源状态（充电中/已充满）、`[已离线]` 缓存标记。
+- 每台设备显示：名称、电量百分比、电源状态（如「充电中」）、`[已离线]` 缓存标记。
 - 支持 AirPods 等多部件设备，分部件（左耳/右耳/电池盒）独立显示。
 - "立即刷新"手动触发；默认每 **5 分钟**自动刷新（v2.1.1 从 15 分钟缩短）。
 - "数据源状态"子菜单显示各 Provider 的成功/失败、设备数、耗时、错误信息。
@@ -74,7 +74,7 @@
 | 标准 BLE Battery Service 外设 | BLE GATT (0x180F) | ✅ | ❌ | ❌ |
 | 其他系统附件 (`pmset`) | System | ✅ | ⚠️ | ❌ |
 
-> ⚠️ 充电状态说明：`pmset -g accps` 能返回 AirPods 等附件的 `charging` 状态字段，但由于数据源优先级覆盖（`system_bluetooth` 200 > `system_accessory` 100）和跨设备 ID 匹配的不确定性，当前版本已实现智能合并策略（`_prefer` 补充 + `_deduplicate_system_devices` 传播），但**实际真机验证中充电图标仍未可靠触发**。键盘/鼠标在插线充电时会切换为 USB HID 模式，蓝牙通道不再上报数据。详见 §14 第 17 条。
+> ⚠️ 充电状态说明：`pmset -g accps` 是 AirPods 充电状态的唯一可靠来源，但 AirPods 在充电盒中时 pmset 输出**无名称的匿名条目**。v2.1.1 及之前版本直接丢弃这些条目，导致充电状态不可见；**v2.1.2 已修复**（`_anonymous_accessory_devices` 按电量匹配，详见 §5.1 与 §14 第 17 条）。键盘/鼠标在插线充电时会切换为 USB HID 模式，蓝牙通道不再上报数据，属硬件限制。
 
 ---
 
@@ -95,7 +95,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  BatteryAggregator.refresh()                                  │
 │   1. 去重（device_id → name+category 两层）                    │
-│   2. 更新内存缓存（3600s 过期）                                 │
+│   2. 更新内存缓存（600s 过期）                                 │
 │   3. 合并新鲜 + 未过期缓存设备                                   │
 │   产出 BatterySnapshot                                        │
 └──────────────┬───────────────────────────────────────────────┘
@@ -127,17 +127,17 @@
 
 ```
 BatteryBar/
-├── app.py                     # 菜单栏入口（rumps.App），958 行
+├── app.py                     # 菜单栏入口（rumps.App），956 行
 ├── models.py                  # BatteryDevice 数据模型 + 校验，325 行
 ├── classifier.py              # 设备分类优先级链，376 行
-├── aggregator.py              # 聚合/去重/缓存引擎，600 行
+├── aggregator.py              # 聚合/去重/缓存引擎，599 行
 ├── provider_registry.py       # Provider 装配（依赖注入），40 行
-├── system_provider.py         # 系统命令数据源，1049 行
-├── bluetooth_provider.py      # BLE GATT 数据源，507 行
-├── hidpp_provider.py          # Logitech HID++ 数据源（核心），~800 行
+├── system_provider.py         # 系统命令数据源，1292 行
+├── bluetooth_provider.py      # BLE GATT 数据源，976 行
+├── hidpp_provider.py          # Logitech HID++ 数据源（核心），880 行
 ├── snapshot_store.py          # 快照原子读写 + 校验，859 行
 ├── widget_snapshot_sync.py    # 快照同步到 Widget 沙盒容器，194 行
-├── tests/                     # 单元测试（7 个文件，114 用例）
+├── tests/                     # 单元测试（7 个文件，113 用例）
 ├── resources/                 # 资源文件目录
 │   ├── Info.plist             # 主应用 bundle 元数据
 │   ├── AppIcon.icns           # 应用图标（1024px 源生成 16/32/128/256/512）
@@ -197,6 +197,7 @@ class BatteryDevice:
 | `ble_standard` | 300 | BLE GATT Battery Service |
 | `system_bluetooth` | 200 | system_profiler 蓝牙清单 |
 | `system_accessory` | 100 | pmset 附件电源 |
+| `system` | — | 保留值（合法但当前无数据源产出） |
 
 **device_id 命名约定：**
 
@@ -213,7 +214,7 @@ class BatteryDevice:
 
 ### 5.1 System Provider
 
-**文件：** `system_provider.py`（1049 行）
+**文件：** `system_provider.py`（1292 行）
 
 负责从 macOS 系统数据源读取蓝牙及附件设备信息，并将设备名称、标识符、电量、连接状态和充电状态转换为统一的设备模型。
 
@@ -292,7 +293,7 @@ macOS 数据源 → System Provider 解析与关联 → 设备字段合并与去
 
 ### 5.2 Bluetooth (BLE) Provider
 
-**文件：** `bluetooth_provider.py`（~520 行）
+**文件：** `bluetooth_provider.py`（976 行）
 
 **原理：** 通过 PyObjC 调用 CoreBluetooth，读取标准 BLE Battery Service。
 
@@ -344,8 +345,6 @@ CBCentralManager
 | `DEFAULT_TIMEOUT` | 12.0s | discover_batteries 统一超时 |
 | `BATTERY_SERVICE` | 0x180F | Battery Service UUID |
 | `BATTERY_LEVEL` | 0x2A19 | Battery Level UUID |
-| `CACHE_TTL_SECONDS` | 10s | system_profiler 缓存 TTL |
-| `MAX_STALE_AGE_SECONDS` | 60s | 过期缓存最大可用年龄 |
 
 **并发安全设计：**
 
@@ -368,7 +367,7 @@ CBCentralManager
 
 ### 5.3 HID++ Provider（重点）
 
-**文件：** `hidpp_provider.py`（~740 行）。这是本项目的**核心难点**，也是历次 bug 集中地。
+**文件：** `hidpp_provider.py`（880 行）。这是本项目的**核心难点**，也是历次 bug 集中地。
 
 #### 5.3.1 接收器枚举（`enumerate_hidpp_receivers`）
 
@@ -391,7 +390,7 @@ macOS 上打开 `usage_page=0x01`（键盘/鼠标）或 `0x0C`（消费键）的
 HID++ 2.0 有**两套**电量协议，必须向设备本身询问它支持哪个：
 
 ```python
-# hidpp_provider.py 第 27 行
+# hidpp_provider.py
 BATTERY_FEATURE_CANDIDATES = [
     (0x1004, 1, 0x01),  # UnifiedBattery:     Function 1, SwID=0x01（新设备：MX Keys S, MX Anywhere 3S）
     (0x1000, 0, 0x02),  # BatteryStatus:      Function 0, SwID=0x02（老设备/Unifying：MX Anywhere 2S）
@@ -465,7 +464,7 @@ macOS hidapi 返回的 path 是 `bytes`。`_make_device` 中对 path 做 `hashli
 
 ## 6. 聚合器与去重
 
-**文件：** `aggregator.py`（600 行）
+**文件：** `aggregator.py`（599 行）
 
 ### 刷新流程（`refresh()`）
 
@@ -561,7 +560,7 @@ Widget 运行在独立沙盒容器，无法直接读主应用的 Application Sup
 
 ## 9. 菜单栏 UI
 
-**文件：** `app.py`（958 行）
+**文件：** `app.py`（956 行）
 
 ### 关键设计
 
@@ -661,8 +660,8 @@ Widget 运行在独立沙盒容器，无法直接读主应用的 Application Sup
 - `Provider: TimelineProvider`，从 snapshot.json 读取设备列表
 - SwiftUI 渲染，SF Symbols 图标
 - 三档尺寸：small（3 设备）/ medium（5）/ large（10）
-- 电量颜色：`>25%` 绿、`11-25%` 橙、`≤10%` 红
-- 充电中显示 ⚡
+- 电量颜色：`≤10%` 红、`11-25%` 橙、`>25%` 系统默认色（primary）
+- 充电中显示 ⚡（bolt.fill，绿色）
 
 ### 沙盒要求
 
@@ -740,12 +739,12 @@ python3 -m unittest discover -s tests -v
 |------|--------|------|
 | `test_models.py` | 6 | BatteryDevice 校验、age、缓存副本 |
 | `test_classifier.py` | 7 | HID usage、名称规则、fallback、AirPods、DJI |
-| `test_bluetooth_provider.py` | 34 | 字节解析、长度校验、超时、未知设备、**_DiscoverySession 状态机（try_finish/cleanup/标记完成/discovery_closed）、GCD 队列行为、discovery lock、统一 deadline、向后兼容** |
-| `test_hidpp_provider.py` | 25 | 报文构造、响应匹配、Feature 偏移、序列号、名字解析、`_guess_hid_usage` fallback、wakeup pulse、指数退避重试、modelId 反查、**多 Feature 候选探测（0x1004/0x1000）、SwID 区分、name/info feature wakeup 重试** |
-| `test_aggregator.py` | 10 | 两层去重、来源优先级、缓存/非缓存、Provider 异常隔离、缓存过期 |
-| `test_system_provider.py` | 17 | **JSON 校验（7 类输入）、缓存命中/过期/刷新、stale-on-error、stale 超龄、无缓存失败、malformed 不覆盖有效缓存** |
-| `test_snapshot_store.py` | 14 | 序列化往返、schema 校验、字段缺失/多余/非法拒绝、原子写读、临时文件清理 |
-| **合计** | **114** | **7 个测试文件** |
+| `test_bluetooth_provider.py` | 35 | 字节解析、长度校验、超时、未知设备、**_DiscoverySession 状态机（try_finish/cleanup/标记完成/discovery_closed）、GCD 队列行为、discovery lock、统一 deadline、向后兼容** |
+| `test_hidpp_provider.py` | 18 | 报文构造（20 字节）、响应匹配、错误识别、feature_id 大端偏移（offset 4-5）、序列号 Function 0、名字解析（offset 4 起）与休眠指数退避重试、modelId 反查表、wakeup pulse 报文与容错、`_guess_hid_usage` fallback |
+| `test_aggregator.py` | 11 | 两层去重、来源优先级、缓存/非缓存、部件设备单独保留、Provider 异常隔离、缓存过期 |
+| `test_system_provider.py` | 23 | **JSON 校验（7 类输入）、缓存命中/过期/刷新、stale-on-error、stale 超龄、无缓存失败、malformed 不覆盖有效缓存、超时降级、缓存重置、匿名条目匹配（6 用例：充电绑定/部分电量/充电盒/无匹配/charging 优先/命名条目不受影响）** |
+| `test_snapshot_store.py` | 13 | 序列化往返、schema 校验、字段缺失/多余/非法拒绝、原子写读、临时文件清理 |
+| **合计** | **113** | **7 个测试文件** |
 
 **未覆盖：** widget_snapshot_sync、app.py。前者涉及文件系统沙盒副作用；app.py 的 `build_menu_rows` 可抽离为纯函数后补测（见第 14 节第 2 条）。
 
@@ -809,6 +808,8 @@ for i in range(6):
 | `DEFAULT_CACHE_EXPIRY_SECONDS` | 600.0（v2.1.1 从 3600.0 缩短） |
 | SOURCE_PRIORITY | hidpp:400, ble:300, sys_bt:200, sys_acc:100 |
 
+> ⚠️ 注意：`provider_registry.create_default_aggregator` 的函数签名默认参数仍是 `cache_expiry_seconds=3600.0`（历史遗留）。app.py 调用时显式传入 `CACHE_EXPIRY_SECONDS=600` 覆盖了它，运行时行为正确；但任何新调用方若不传参将拿到 3600——新增调用方必须显式传值。
+
 ### 依赖版本（`requirements.txt`）
 
 | 包 | 版本 | 说明 |
@@ -832,7 +833,7 @@ for i in range(6):
 
 1. ~~**测试覆盖不足**：aggregator 的去重/缓存、snapshot_store 的读写校验、system_provider 的解析均无单测。~~
    **已修复**：新增 `test_aggregator.py`（10 用例）和 `test_snapshot_store.py`（14 用例），覆盖去重/缓存/序列化/校验/原子 IO。总测试从 36 增至 73（6 个文件）。
-2. **`app.py` 958 行偏长**：`build_menu_rows` 和格式化函数可拆到独立 `menu_builder.py`，便于复用和测试。
+2. **`app.py` 956 行偏长**：`build_menu_rows` 和格式化函数可拆到独立 `menu_builder.py`，便于复用和测试。已在 AGENTS.md 列为重力井——禁止再加新功能。
 3. ~~**项目根目录有大量备份/历史文件**~~：已整理到 `~/BatteryBar-clean/`，仅保留必要文件。
 4. ~~**CHANGELOG.md 为空**：应记录版本变更。~~
    **已修复**：创建 `CHANGELOG.md`，记录 v2.0.0 初始发布与 v2.1.0 变更（BLE GCD 重写、system_provider 缓存、lazy dispatch、+41 测试）。
@@ -863,7 +864,7 @@ for i in range(6):
       3. **Wakeup pulse 预热**：名字读取前发 `_wakeup_pulse`（Root Feature 自查询，SwID=0x09），给设备额外唤醒时间。
       4. **指数退避重试**：`get_device_name` 内部 name_len 查询使用渐进式延迟 `0.1s → 0.2s → 0.4s`。
       5. **modelId 反查兜底**：名字仍失败时，通过 0x0003 DeviceInfo 的 modelId（offset 9-11）反查 `_KNOWN_MODEL_NAMES` 字典（14 个常见型号），避免显示无意义 Slot 编号。
-    - **对应测试**：`BatteryFeatureCandidateTests.test_probe_retries_name_feature_after_wakeup`、`test_probe_retries_info_feature_after_wakeup` 验证了重试逻辑。
+    - **对应测试**：`test_get_device_name_retries_with_backoff_on_sleeping_device`（HidppProviderDynamicTests，验证名字长度查询指数退避）、`WakeupPulseTests`（验证 wakeup pulse 报文构造与写错误容错）。
 13. ~~**`bluetooth_provider.py` 中 `CoreBluetooth` 的并发安全与 delegate 内存生命周期管理隐患**：~~
     **已实施（待真机验证）**：
 
@@ -919,7 +920,9 @@ for i in range(6):
 15. **无 Developer ID 签名**：用户首次打开需右键"打开"绕过 Gatekeeper。正式发布应申请 Developer ID。
 16. **Widget 与主应用 bundle ID 体系**：主应用 `io.github.l351i3.batterybar`，Widget 宿主 `io.github.l351i3.batterybar.widgethost`，Widget 扩展 `io.github.l351i3.batterybar.widgethost.widget`，app-group `group.io.github.l351i3.batterybar`。这套 ID 体系相互关联，改动一处需同步其余。
 
-### 充电状态（v2.1.1 重点，仍需真机验证）
+### 充电状态（v2.1.2 已修复）
+
+> 修复依据：真机 pmset 抓包（2026-08-14 三次）+ 单元测试回归。100% 误显示"充电状态"的问题在 v2.1.2 后段修复后用户未再报告；充电显示的日常真机表现以实际使用为准。
 
 17. ~~**AirPods 充电状态获取**：~~ **已修复（v2.1.2）**
 

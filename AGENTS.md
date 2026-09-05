@@ -62,4 +62,4 @@ bash scripts/gates/run_all.sh      # 交付门禁聚合（死链 + decisions 结
 
 非机械改动 ≤150 行、复杂逻辑 ≤60 行，超了先拆。
 
-重力井：**`app.py`（956 行）** 与 **`build_release_final.sh`（约 640 行）** —— 禁止再往里加新的独立功能。app.py 的新功能放独立模块由 app 调用；新安装逻辑放独立脚本由构建脚本复制。
+重力井：**`app.py`（956 行）** 与 **`build_release_final.sh`（483 行）** —— 禁止再往里加新的独立功能。app.py 的新功能放独立模块由 app 调用；新安装逻辑放独立脚本由构建脚本复制。

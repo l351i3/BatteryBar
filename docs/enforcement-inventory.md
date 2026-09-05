@@ -24,5 +24,5 @@
 **统计**：规则 15 条 · 结构层 8 · 门禁层 4 · 散文层 3 · 有意接受的风险 3（#13 本地隐私文件保留、#14 月度人工盘点、#7 版本一致性靠评审）。
 
 **值回票价的发现**：
-- **文档漂移**：① `tests/test_hidpp_provider.py-202607292031` 垃圾备份文件混在 git 仓库的 tests/ 里，`pytest tests/` 不收集（文件名不以 test_ 开头无妨——实际以 `test_hidpp_provider.py-` 开头不匹配 `test_*.py` 模式，无执行影响，但属仓库垃圾）→ 第 3 步清理并记 ADR；② DEVELOPMENT.md §15 称 `diagnose.sh` "随 Full 包分发（diagnose_safely.sh）"，构建脚本第 6 步确实复制并改名——核实后一致，无漂移；③ app.py 约 950 行，接近 800 行重力井阈值 → 第 2 步写入 AGENTS.md。
+- **文档漂移**：① `tests/test_hidpp_provider.py-202607292031` 垃圾备份文件混在 git 仓库的 tests/ 里，`pytest tests/` 不收集（文件名不以 test_ 开头无妨——实际以 `test_hidpp_provider.py-` 开头不匹配 `test_*.py` 模式，无执行影响，但属仓库垃圾）→ 第 3 步清理并记 ADR；② DEVELOPMENT.md §15 称 `diagnose.sh` "随 Full 包分发（diagnose_safely.sh）"，构建脚本第 6 步确实复制并改名——核实后一致，无漂移；③ app.py 956 行、build_release_final.sh 483 行，均已越过 800 行重力井阈值 → 第 2 步写入 AGENTS.md。
 - **裸奔规则**：版本一致性（#7）、双目录同步（#12）、文档同步（#15）原本都是"大家注意"式散文，已降级标注为评审必看项并写明具体查什么。
