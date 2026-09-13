@@ -24,7 +24,7 @@ build_release_final.sh  # 主构建脚本（内嵌生成 DMG 里的安装脚本�
 ```bash
 python3 -m pytest tests/ -q        # 全部单元测试（113 个）；改任何 provider/aggregator/models 后跑
 bash build_release_final.sh        # 完整发布构建：依赖→测试→打包→签名→DMG；测试失败即构建失败
-bash scripts/gates/run_all.sh      # 交付门禁聚合（死链 + decisions 结构）；git pre-push 也会触发
+bash scripts/gates/run_all.sh      # 交付门禁聚合（6 检查：死链 / decisions 结构 / 冒烟新鲜度 / ADR↔测试映射 / 断言溯源 / 计划台账 + 权威源一致性）；全绿写 .gates-passed。git pre-push 也会触发
 /opt/homebrew/bin/gh release create vX.Y.Z dist/*.dmg   # 发 Release；gh 已登录，无需 token
 ```
 
@@ -39,16 +39,16 @@ bash scripts/gates/run_all.sh      # 交付门禁聚合（死链 + decisions 结
 
 - **pyobjc 版本锁定 9.2** — bleak 0.21.1 要求 `>=9.2,<10.0`，升级前必须先升 bleak（执行者：requirements.txt 固定版本 + 构建时 pip 安装即失败·门禁性；DEVELOPMENT.md §13）
 - **禁止 `with_cached(True)` 造数据** — aggregator 把 cached 视为最低优先级，手工造缓存数据会被真数据覆盖（执行者：`aggregator._prefer` 比较逻辑·结构）
-- **osascript 参数永远单引号** — 双引号嵌套会静默语法错误，登录项写不进去（执行者：构建脚本 heredoc 模板 + 评审必看项；教训见 DEVELOPMENT.md §11 已踩过的坑 #4、ADR-2026-08-16-fix-1）
+- **osascript 参数永远单引号** — 双引号嵌套会静默语法错误，登录项写不进去（执行者：构建脚本 heredoc 模板 + 评审必看项；教训见 DEVELOPMENT.md §11 已踩过的坑 #4、[ADR](decisions/implemented/fix/2026-08-16-installer-scripts-login-item.md)）
 - **DMG 内安装脚本的源头是 build_release_final.sh 的 heredoc** — 改安装逻辑必须改构建脚本模板，改外层独立 .sh 对 DMG 无效（执行者：`zsh -n` 构建期语法检查·门禁性）
 - **改 provider/aggregator 行为必须同步 DEVELOPMENT.md 对应章节 + CHANGELOG**（执行者：评审必看项·散文）
-- **改主目录（BatteryBar/）必须 cp 同步到本仓库并 push**（执行者：评审必看项·散文；盘点表 #12）
+- **改主目录（BatteryBar/）必须 cp 同步到 clean 发布仓库并 push**（执行者：评审必看项·散文；盘点表 #12）
 - **版本号改动必查三处**：`app.py APP_VERSION`、`build_release_final.sh`、`build_release.sh VERSION`（Info.plist/spec 会被构建覆盖，不用手改）（执行者：评审必看项·散文）
 
 ## 已知限制
 
-- **仅 Apple Silicon**：安装包 arm64-only（`BatteryBar.spec target_arch="arm64"`），Intel 不可运行（ADR-2026-08-16-architecture-2）
-- **UI 仅中文**：无国际化（ADR-2026-08-16-rejected-1）
+- **仅 Apple Silicon**：安装包 arm64-only（`BatteryBar.spec target_arch="arm64"`），Intel 不可运行（[ADR](decisions/implemented/architecture/2026-08-16-release-single-commit-arm64.md)）
+- **UI 仅中文**：无国际化（[ADR](decisions/rejected/feature/2026-08-16-ui-i18n.md)）
 - **Magic 键鼠插线充电不可见**：USB HID 模式下蓝牙停报，硬件限制
 - **键盘/鼠标 HID++ 深睡首刷可能显示占位名**：名字缓存兜底，第二次刷新恢复
 
@@ -56,7 +56,7 @@ bash scripts/gates/run_all.sh      # 交付门禁聚合（死链 + decisions 结
 
 - `diagnose.sh`（只读诊断）可随 Full 包分发，改名 `diagnose_safely.sh`；目前构建脚本已自动复制
 - 新 provider 接入时参照 `tests/test_system_provider.py` 的 mock 模式写测试
-- `test_hidpp_provider.py-202607292031` 这类带后缀的备份文件不要留在 tests/ 下（见 ADR-2026-08-16-process-1）
+- `test_hidpp_provider.py-202607292031` 这类带后缀的备份文件不要留在 tests/ 下（见 [ADR](decisions/implemented/process/2026-08-16-tests-backup-files.md)）
 
 ## 改动规模
 

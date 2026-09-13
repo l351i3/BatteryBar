@@ -8,9 +8,10 @@
 2) 文件名必须为 YYYY-MM-DD-<主题>.md。
 3) proposed 必含章节：## Problem / ## Proposal / ## Alternatives considered。
 4) implemented 不得残留规格语气：未勾选任务 "- [ ]"、将来时标志"我们打算"。
+5) decisions/ 树内禁止 INDEX.md / index.md——目录树就是清单，索引是必然腐烂的第二真源。
 decisions/ 根目录的 README 等单层文件豁免（制度文档本身）。
 判定阈值刻意收窄（只查确定性、低歧义的结构事实），避免把判断题做成假阳性门禁。
-已验证会红：2026-09-04，fixture（非法类别目录 + 缺必需章节的 proposed）→ exit 1。
+已验证会红：2026-09-04，fixture（非法类别目录 + 缺必需章节的 proposed）→ exit 1；2026-09-06，fixture（decisions/INDEX.md）→ exit 1。
 用法：python3 check_decisions.py [目标目录]（默认为本 skill 根目录）
 """
 import re
@@ -29,6 +30,8 @@ def main() -> int:
         print("[check_decisions] 绿灯（无 decisions/ 目录，尚未建档）")
         return 0
     errors = []
+    for idx in sorted(set(droot.rglob("INDEX.md")) | set(droot.rglob("index.md"))):
+        errors.append(f"decisions/{idx.relative_to(droot)}: 禁止集中式索引（目录树就是清单，索引是必然腐烂的第二真源）")
     for p in sorted(droot.rglob("*.md")):
         rel = p.relative_to(droot)
         if len(rel.parts) == 1:  # README 等制度文档
@@ -58,7 +61,7 @@ def main() -> int:
         for e in errors:
             print("  " + e)
         return 1
-    print("[check_decisions] 绿灯（生命周期/类别/命名/必需章节/规格语气全部合规）")
+    print("[check_decisions] 绿灯（生命周期/类别/命名/必需章节/规格语气/无索引全部合规）")
     return 0
 
 
